@@ -1,4 +1,6 @@
+// @ts-ignore
 import React, { useRef } from 'react';
+// @ts-ignore
 import ReCAPTCHA from 'react-google-recaptcha';
 import { createUser } from '../services/api';
 import { toast, ToastContainer } from 'react-toastify';

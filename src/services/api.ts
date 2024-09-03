@@ -44,21 +44,21 @@ export const updateUser = (
     });
 };
 
-
 export const getPayments = async (): Promise<ConvertedPayment[]> => {
   try {
-    // Realiza la petición a la API
     const response: AxiosResponse<{ status: boolean; message: string; data: Payment[] }> = await api.get("/payments");
 
-    // Verifica que 'data' es un array
-    if (Array.isArray(response.data.data)) {
-      // Convierte Payment[] a ConvertedPayment[]
-      return response.data.data.map((payment: Payment) => convertPaymentData(payment));
-    } else {
-      throw new Error("Unexpected response structure");
+    if (!response.data.status || !Array.isArray(response.data.data)) {
+      throw new Error("Unexpected API response structure");
     }
-  } catch (error) {
-    console.error("Error fetching payments:", error);
+
+    return response.data.data.map(convertPaymentData);
+  } catch (error: unknown) {
+    if (axios.isAxiosError(error)) {
+      console.error("API Error:", error.response?.data || error.message);
+    } else {
+      console.error("Unexpected error:", error);
+    }
     throw error;
   }
 };

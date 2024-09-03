@@ -18,7 +18,6 @@ export const Navbar = () => {
   const navItems = [
     { label: 'Preinscripciones', path: '/preinscripciones' },
     { label: 'Pagos', path: '/pagos' },
-    // Agrega más rutas según sea necesario
   ];
 
   return (

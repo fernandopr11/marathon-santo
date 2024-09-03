@@ -298,7 +298,7 @@ const RegisterForm: React.FC = () => {
               <div className="mb-4">
                 <ReCAPTCHA
                   ref={recaptchaRef}
-                  sitekey="6LfjKjUqAAAAAODQyV9_BUyM2toE3-iwJv3l9b5E"
+                  sitekey="6Leu3DUqAAAAAGXQkLrINY_2ukFykG0jPZvsq8my"
                 />
               </div>
               <button

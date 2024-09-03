@@ -7,11 +7,12 @@ import 'react-toastify/dist/ReactToastify.css';
 import { validationSchema } from '../utils/validators';
 
 const RegisterForm: React.FC = () => {
-  const recaptchaRef = useRef<ReCAPTCHA>(null);
+  // const recaptchaRef = useRef<ReCAPTCHA>(null);
 
   const handleSubmit = async (values: any, { resetForm }: any) => {
-    const recaptchaValue = recaptchaRef.current?.getValue();
-    if (recaptchaValue) {
+    
+    // const recaptchaValue = recaptchaRef.current?.getValue();
+    
       try {
         //Descarta los valores que no se necesitan, terms y newsletter
         delete values.terms;
@@ -23,14 +24,12 @@ const RegisterForm: React.FC = () => {
           'Su preinscripción a la carrera fue enviada satisfactoriamente'
         );
         resetForm();
-        recaptchaRef.current?.reset();
+        
       } catch (error) {
         console.error(error);
         toast.error('Hubo un error al enviar su preinscripción');
       }
-    } else {
-      toast.error('Por favor, completa el CAPTCHA');
-    }
+    
   };
 
   return (
@@ -294,12 +293,6 @@ const RegisterForm: React.FC = () => {
               <div className="flex items-center mb-4">
                 <Field type="checkbox" name="newsletter" className="mr-2" />
                 <label>Deseo recibir información sobre nuevas carreras</label>
-              </div>
-              <div className="mb-4">
-                <ReCAPTCHA
-                  ref={recaptchaRef}
-                  sitekey="6Leu3DUqAAAAAGXQkLrINY_2ukFykG0jPZvsq8my"
-                />
               </div>
               <button
                 type="submit"

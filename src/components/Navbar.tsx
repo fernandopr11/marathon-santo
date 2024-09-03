@@ -9,7 +9,7 @@ export const Navbar = () => {
   const isHidden =
     location === '/' ||
     /^\/pagar\/[^/]+$/.test(location) ||
-    location === 'info';
+    location === '/info';
 
   if (isHidden) {
     return null;

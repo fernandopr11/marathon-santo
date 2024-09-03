@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useLocation } from 'wouter';
 import { useDropzone } from 'react-dropzone';
 import { useFormik } from 'formik';

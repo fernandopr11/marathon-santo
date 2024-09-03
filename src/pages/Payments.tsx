@@ -5,76 +5,52 @@ import {
   TableBody,
   TableRow,
   TableCell,
-  Input,
   Button,
-  DropdownTrigger,
-  Dropdown,
-  DropdownMenu,
-  DropdownItem,
   Chip,
-  User,
-  Pagination,
-  Selection,
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
   ChipProps,
-  SortDescriptor,
 } from '@nextui-org/react';
-import React, { useEffect, useState, useCallback, useMemo } from 'react';
-
-import { ChevronDownIcon } from '../components/preinscriptions/ChevronDownIcon';
-
-import { columns2 } from '../components/payments/data';
-
-import { capitalize } from '../components/preinscriptions/utils';
+import { useEffect, useState, useCallback } from 'react';
 
 import { getPayments, updatePayment } from '../services/api';
-import { ConvertedPayment, Payment } from '../models/Payment';
-
-const INITIAL_VISIBLE_COLUMNS = columns2.map((column) => column.uid);
+import { ConvertedPayment } from '../models/Payment';
 
 export default function Payments() {
   const [payments, setPayments] = useState<ConvertedPayment[]>([]);
-  const [filterValue, setFilterValue] = useState('');
-  const [selectedKeys, setSelectedKeys] = useState<Selection>(new Set([]));
-  const [visibleColumns, setVisibleColumns] = useState<Selection>(
-    new Set(INITIAL_VISIBLE_COLUMNS)
-  );
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+
+  const statusColorMap: Record<string, ChipProps['color']> = {
+    Pendiente: 'warning',
+    Aprobado: 'success',
+    Rechazado: 'danger',
+  };
 
   useEffect(() => {
     const fetchPayments = async () => {
       try {
         const data = await getPayments();
         setPayments(data);
-        console.log('Payments:', payments);
+        console.log('Payments:', data);
       } catch (error) {
         console.error('Error fetching payments:', error);
       }
     };
+
     fetchPayments();
   }, []);
 
-  const [selectedCategories, setSelectedCategories] = useState<Selection>(
-    new Set([])
-  );
-  const [rowsPerPage, setRowsPerPage] = useState(5);
-  const [sortDescriptor, setSortDescriptor] = useState<SortDescriptor>({
-    column: 'id',
-    direction: 'ascending',
-  });
-  const [page, setPage] = useState(1);
-
-  const hasSearchFilter = Boolean(filterValue);
-
   const handleAccept = async (id: any) => {
     try {
-      // Actualización del estado local después de que la API haya respondido
       setPayments((prevPayments) =>
         prevPayments.map((payment) =>
           payment.id === id ? { ...payment, estado: 'Aprobado' } : payment
         )
       );
-      // Llamada a la API para actualizar el estado del usuario
       await updatePayment(id, { status: 'Aprobado' });
     } catch (error) {
       console.error('Error updating payment status:', error);
@@ -83,40 +59,43 @@ export default function Payments() {
 
   const handleReject = async (id: any) => {
     try {
-      // Actualización del estado local después de que la API haya respondido
       setPayments((prevPayments) =>
         prevPayments.map((payment) =>
           payment.id === id ? { ...payment, estado: 'Rechazado' } : payment
         )
       );
-      // Llamada a la API para actualizar el estado del usuario
       await updatePayment(id, { status: 'Rechazado' });
     } catch (error) {
       console.error('Error updating payment status:', error);
     }
   };
 
-  const statusColorMap: Record<string, ChipProps['color']> = {
-    Pendiente: 'warning',
-    Aprobado: 'success',
-    Rechazado: 'danger',
+  const handleImageClick = (image: string) => {
+    setSelectedImage(image);
+    setModalVisible(true);
   };
 
   const renderCell = useCallback(
-    (pago: Payment, columnKey: React.Key) => {
-      let cellValue = pago[columnKey as keyof Payment];
-
-      // Convert Date to string
-      if (cellValue instanceof Date) {
-        cellValue = cellValue.toLocaleDateString();
-      }
+    (
+      payment: { [x: string]: any; usuario: { nombres: any; apellidos: any } },
+      columnKey: string | number
+    ) => {
+      const cellValue = payment[columnKey];
 
       switch (columnKey) {
-        case 'status':
+        case 'usuario':
+          return `${payment.usuario.nombres} ${payment.usuario.apellidos}`;
+        case 'estado':
           return (
-            <Chip color={statusColorMap[pago.status]} size="sm" variant="flat">
-              {pago.status}
-            </Chip>
+            <Chip color={statusColorMap[cellValue] || 'default'}>{cellValue}</Chip>
+          );
+        case 'fechaPago':
+          return cellValue;
+        case 'comprobante':
+          return (
+            <Button onPress={() => handleImageClick(payment.urlComprobante)}>
+              Ver Comprobante
+            </Button>
           );
         case 'actions':
           return (
@@ -126,7 +105,7 @@ export default function Payments() {
                 size="sm"
                 color="success"
                 variant="light"
-                onPress={() => handleAccept(pago.id)}
+                onPress={() => handleAccept(payment.id)}
               >
                 ✓
               </Button>
@@ -135,50 +114,65 @@ export default function Payments() {
                 size="sm"
                 color="danger"
                 variant="light"
-                onPress={() => handleReject(pago.id)}
+                onPress={() => handleReject(payment.id)}
               >
                 ✕
               </Button>
             </div>
           );
-        case 'preview':
-          return (
-            <a
-              href="#"
-              className="text-blue-500 underline"
-              onClick={() => {
-                setSelectedImage('/images/comprobante.jpg'); // Ruta relativa a la imagen en la carpeta public
-                setModalVisible(true);
-              }}
-            >
-              Ver Pago
-            </a>
-          );
         default:
-          return cellValue as React.ReactNode;
+          return cellValue;
       }
-    },
-    [statusColorMap]
-  );
-
-  const onNextPage = useCallback(() => {
-    if (page < page) {
-      setPage(page + 1);
-    }
-  }, [page, page]);
-
-  const onPreviousPage = useCallback(() => {
-    if (page > 1) {
-      setPage(page - 1);
-    }
-  }, [page]);
-
-  const onRowsPerPageChange = useCallback(
-    (e: React.ChangeEvent<HTMLSelectElement>) => {
-      setRowsPerPage(Number(e.target.value));
-      setPage(1);
     },
     []
   );
 
+  return (
+    <>
+      <Table aria-label="Payments table">
+        <TableHeader>
+          <TableColumn>Usuario</TableColumn>
+          <TableColumn>Cédula</TableColumn>
+          <TableColumn>Correo</TableColumn>
+          <TableColumn>Fecha de Pago</TableColumn>
+          <TableColumn>Estado</TableColumn>
+          <TableColumn>Comprobante</TableColumn>
+          <TableColumn>Acciones</TableColumn>
+        </TableHeader>
+        <TableBody items={payments}>
+          {(payment) => (
+            <TableRow key={payment.id}>
+              <TableCell>{renderCell(payment, 'usuario')}</TableCell>
+              <TableCell>{payment.usuario.cedula}</TableCell>
+              <TableCell>{payment.usuario.correo}</TableCell>
+              <TableCell>{payment.fechaPago}</TableCell>
+              <TableCell>{renderCell(payment, 'estado')}</TableCell>
+              <TableCell>{renderCell(payment, 'comprobante')}</TableCell>
+              <TableCell>{renderCell(payment, 'actions')}</TableCell>
+            </TableRow>
+          )}
+        </TableBody>
+      </Table>
+
+      {selectedImage && (
+        <Modal isOpen={modalVisible} onClose={() => setModalVisible(false)}>
+          <ModalContent>
+            <ModalHeader>
+              <h2>Vista previa del comprobante</h2>
+            </ModalHeader>
+            <ModalBody>
+              <img
+                src={selectedImage}
+                alt="Vista previa del comprobante"
+                className="rounded-lg shadow-md w-full h-auto"
+              />
+            </ModalBody>
+            <ModalFooter>
+              <Button onPress={() => setModalVisible(false)}>Cerrar</Button>
+            </ModalFooter>
+          </ModalContent>
+        </Modal>
+      )}
+    </>
+  );
 }

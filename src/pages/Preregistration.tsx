@@ -5,7 +5,6 @@ import {
   TableBody,
   TableRow,
   TableCell,
-  Input,
   Button,
   DropdownTrigger,
   Dropdown,
@@ -17,7 +16,6 @@ import {
   Selection,
   ChipProps,
   SortDescriptor,
-  user,
 } from '@nextui-org/react';
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
 
@@ -26,10 +24,9 @@ import { ChevronDownIcon } from '../components/preinscriptions/ChevronDownIcon';
 import {
   columns2
 } from '../components/preinscriptions/data';
-
 import { capitalize } from '../components/preinscriptions/utils';
-
 import { getUsers, updateUser } from '../services/api';
+
 
 const INITIAL_VISIBLE_COLUMNS = [
   'nombres',
@@ -41,10 +38,9 @@ const INITIAL_VISIBLE_COLUMNS = [
   'actions',
 ];
 
-// //Create useState to set the initial users
-// type User = (typeof initialUsers)[0];
 
 export default function Users() {
+  // @ts-ignore
   const [users, setUsers] = useState<User>([]);
   const [filterValue, setFilterValue] = useState('');
   const [selectedKeys, setSelectedKeys] = useState<Selection>(new Set([]));
@@ -81,7 +77,7 @@ export default function Users() {
   const handleAccept = async (id: any) => {
     try {
       // Actualización del estado local después de que la API haya respondido
-      setUsers((prevUsers) =>
+      setUsers((prevUsers: any[]) =>
         prevUsers.map((user) =>
           user.id === id ? { ...user, status: 'Aprobada' } : user
         )
@@ -96,7 +92,7 @@ export default function Users() {
   const handleReject = async (id: any) => {
     try {
       // Actualización del estado local después de que la API haya respondido
-      setUsers((prevUsers) =>
+      setUsers((prevUsers: any[]) =>
         prevUsers.map((user) =>
           user.id === id ? { ...user, status: 'Rechazada' } : user
         )
@@ -137,14 +133,15 @@ export default function Users() {
   }, [page, filteredItems, rowsPerPage]);
 
   const sortedItems = useMemo(() => {
-    return [...items].sort((a: User, b: User) => {
-      const first = a[sortDescriptor.column as keyof User] as number;
-      const second = b[sortDescriptor.column as keyof User] as number;
+    return [...items].sort((a: typeof User, b: typeof User) => {
+      const first = a[sortDescriptor.column as keyof typeof User] as number;
+      const second = b[sortDescriptor.column as keyof typeof User] as number;
       const cmp = first < second ? -1 : first > second ? 1 : 0;
 
       return sortDescriptor.direction === 'descending' ? -cmp : cmp;
     });
   }, [sortDescriptor, items]);
+
 
   const categoryColorMap: Record<string, ChipProps['color']> = {
     '42k': 'success',
@@ -152,7 +149,10 @@ export default function Users() {
     '10k': 'danger',
   };
 
+  // @ts-ignore
   const renderCell = useCallback((user: User, columnKey: React.Key) => {
+    
+    // @ts-ignore
     const cellValue = user[columnKey as keyof User];
 
     switch (columnKey) {
@@ -249,11 +249,6 @@ export default function Users() {
     } else {
       setFilterValue('');
     }
-  }, []);
-
-  const onClear = useCallback(() => {
-    setFilterValue('');
-    setPage(1);
   }, []);
 
   const onCategoryChange = useCallback((category: Selection) => {

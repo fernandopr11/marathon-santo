@@ -2,10 +2,10 @@ import { Route, Switch } from 'wouter';
 import './App.css';
 import Register from './pages/Register';
 import Users from './pages/Preregistration';
-import { Navbar } from './components/navbar';
 import UploadVoucher from './pages/UploadVoucher';
 import Info from './pages/Info';
 import Payments from './pages/Payments';
+import Navbar from './components/Navbar';
 
 function App() {
   return (
